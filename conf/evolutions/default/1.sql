@@ -12,7 +12,7 @@ create table company (
 
 create table user (
   name                        varchar(255) not null,
-  mob_no                      bigint not null,
+  mob_no                      bigint,
   constraint pk_user primary key (name))
 ;
 

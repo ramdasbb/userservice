@@ -2,16 +2,18 @@ package models
 
 import javax.inject.Inject
 
-import scala.util.{ Failure, Success }
-
+import scala.util.{Failure, Success}
 import anorm._
-import anorm.SqlParser.{ get, str }
-
+import anorm.SqlParser.{get, str}
 import play.api.db.DBApi
+import play.api.libs.json.Json
 
 import scala.concurrent.Future
 
 case class Company(id: Option[Long] = None, name: String)
+object  Company{
+  implicit val  company = Json.format[Company]
+}
 
 @javax.inject.Singleton
 class CompanyRepository @Inject()(dbapi: DBApi)(implicit ec: DatabaseExecutionContext) {

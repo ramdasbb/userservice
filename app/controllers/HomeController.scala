@@ -4,6 +4,7 @@ import javax.inject.Inject
 import models._
 import play.api.data.Forms._
 import play.api.data._
+import play.api.libs.json.Json
 import play.api.mvc._
 import service.UserRepository
 import views._
@@ -128,6 +129,8 @@ class HomeController @Inject()(computerService: ComputerRepository,
       }
     )
   }
+// few best feature to avail non blocking IO
+  // implicit ?
 
   def addUser = Action.async{ implicit request =>
     userRepository.insert(User("112312", 123)).map{ user=>
@@ -137,7 +140,10 @@ class HomeController @Inject()(computerService: ComputerRepository,
 
   def getUser = Action.async{ implicit request =>
     userRepository.findByName("112312").map{ user=>
-      Ok("Su cessfully added user "+ user)
+      Ok("Successfully received the user "+ user)
+    } recover {
+      case t :Throwable =>
+        BadRequest("requets not good")
     }
   }
 
@@ -147,6 +153,12 @@ class HomeController @Inject()(computerService: ComputerRepository,
   def delete(id: Long) = Action.async {
     computerService.delete(id).map { _ =>
       Home.flashing("success" -> "Computer has been deleted")
+    }
+  }
+
+  def listCompany = Action.async { implicit request =>
+    computerService.list2( filter = ("%" + "apple" + "%")).map { page =>
+      Ok(Json.toJson(page))
     }
   }
 

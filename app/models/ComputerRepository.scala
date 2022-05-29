@@ -30,7 +30,6 @@ case class Page[A](items: Seq[A], page: Int, offset: Long, total: Long) {
   lazy val next = Option(page + 1).filter(_ => (offset + items.size) < total)
 }
 
-
 @javax.inject.Singleton
 class ComputerRepository @Inject()(dbapi: DBApi, companyRepository: CompanyRepository)(implicit ec: DatabaseExecutionContext) {
 
@@ -59,6 +58,10 @@ class ComputerRepository @Inject()(dbapi: DBApi, companyRepository: CompanyRepos
     case computer ~ company => computer -> company
   }
 
+  private val withCompany2 = simple ~ (companyRepository.simple.?) map {
+    case computer ~ company => ResultComputer(computer , company)
+  }
+
   // -- Queries
 
   /**
@@ -67,6 +70,43 @@ class ComputerRepository @Inject()(dbapi: DBApi, companyRepository: CompanyRepos
   def findById(id: Long): Future[Option[Computer]] = Future {
     db.withConnection { implicit connection =>
       SQL"select * from computer where id = $id".as(simple.singleOpt)
+    }
+  }(ec)
+
+  /**
+   * Return a page of (Computer,Company).
+   *
+   * @param page Page to display
+   * @param pageSize Number of computers per page
+   * @param orderBy Computer property used for sorting
+   * @param filter Filter applied on the name column
+   */
+  case class ResultComputer(computer:Computer, company:Option[Company])
+  object ResultComputer{
+    implicit val format = Json.format[ResultComputer]
+  }
+
+  def list2(page: Int = 0, pageSize: Int = 10, orderBy: Int = 1, filter: String = "%") = Future {
+
+    val offset = pageSize * page
+
+    db.withConnection { implicit connection =>
+
+      val computers = SQL"""
+        select * from computer
+        left join company on computer.company_id = company.id
+        where computer.name like ${filter}
+        order by ${orderBy} nulls last
+        limit ${pageSize} offset ${offset}
+      """.as(withCompany2.*)
+
+      val totalRows = SQL"""
+        select count(*) from computer
+        left join company on computer.company_id = company.id
+        where computer.name like ${filter}
+      """.as(scalar[Long].single)
+
+      computers
     }
   }(ec)
 

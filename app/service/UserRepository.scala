@@ -8,9 +8,11 @@ import play.api.db.DBApi
 
 import scala.concurrent.Future
 
-@javax.inject.Singleton
-class UserRepository @Inject()( dbapi: DBApi) (implicit ec: DatabaseExecutionContext) {
-  private val db = dbapi.database("default")
+// servie - dao
+// interface DAOIMPL - get , insert()
+@javax.inject.Singleton // sevice
+class UserRepository @Inject() (dbapi: DBApi) (implicit ec: DatabaseExecutionContext) {
+  private val db = dbapi.database("default") // default database using h2
 
   val simple = {
     get[String]("user.name") ~

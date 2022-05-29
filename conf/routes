@@ -15,7 +15,7 @@ POST    /computers                  controllers.HomeController.save
 #User
 POST    /user                       controllers.HomeController.addUser
 GET     /user                       controllers.HomeController.getUser
-
+GET     /computer/load/all          controllers.HomeController.listCompany
 # Edit existing computer
 GET     /computers/:id              controllers.HomeController.edit(id:Long)
 POST    /computers/:id              controllers.HomeController.update(id:Long)
